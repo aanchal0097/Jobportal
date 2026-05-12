@@ -3,7 +3,7 @@ pipeline{
     stages{
         stage('Build Docker Image'){
             steps{
-                sh 'docker build -t sharmaanchal01/jobportal:latest frontend'        
+                sh 'docker build -t sharmaanchal01/jobportal:latest .'        
             }
         }
         stage('Push Docker Iamge'){

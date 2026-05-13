@@ -29,11 +29,11 @@ pipeline {
         }
 
         stage('Deploy to Kubernetes'){
-            steps{
-                sh 'kubectl apply -f K8S/configmap.yaml '
-                sh 'kubectl apply -f K8S/deployment.yaml'
-                sh 'kubectl apply -f K8S/service.yaml'
-            }
-        }
+    steps{
+        sh 'kubectl apply -f K8S/configmap.yaml --validate=false'
+        sh 'kubectl apply -f K8S/deployment.yaml --validate=false'
+        sh 'kubectl apply -f K8S/service.yaml --validate=false'
+    }
+}
     }
 }

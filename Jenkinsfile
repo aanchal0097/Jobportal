@@ -28,12 +28,18 @@ pipeline {
             }
         }
 
-        stage('Deploy to Kubernetes'){
-    steps{
-        sh 'kubectl apply -f K8S/configmap.yaml --validate=false'
-        sh 'kubectl apply -f K8S/deployment.yaml --validate=false'
-        sh 'kubectl apply -f K8S/service.yaml --validate=false'
+         stage('Deploy to Kubernetes') {
+            steps {
+                // ✅ Yahan authentication add karo
+                withKubeConfig([credentialsId: 'kubeconfig']) {
+                    sh 'kubectl apply -f K8S/configmap.yaml'
+                    sh 'kubectl apply -f K8S/deployment.yaml'
+                    sh 'kubectl apply -f K8S/service.yaml'
+                    
+                    // Optional: Verify deployment
+                    sh 'kubectl get pods'
+                    sh 'kubectl get svc'
+                }
+            }
+        }
     }
-}
-    }
-}

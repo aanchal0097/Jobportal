@@ -16,7 +16,9 @@ pipeline {
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
+
                     sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+
                 }
             }
         }
@@ -28,22 +30,26 @@ pipeline {
         }
 
         stage('Deploy to Kubernetes') {
-    steps {
-        withCredentials([file(
-            credentialsId: 'kubeconfig',
-            variable: 'KUBECONFIG'
-        )]) {
+            steps {
 
-            sh '''
-                export KUBECONFIG=$KUBECONFIG
+                withCredentials([file(
+                    credentialsId: 'kubeconfig',
+                    variable: 'KUBECONFIG'
+                )]) {
 
-                kubectl apply -f K8S/configmap.yaml
-                kubectl apply -f K8S/deployment.yaml
-                kubectl apply -f K8S/service.yaml
+                    sh '''
+                        export KUBECONFIG=$KUBECONFIG
 
-                kubectl get pods
-                kubectl get svc
-            '''
+                        kubectl apply -f K8S/configmap.yaml
+                        kubectl apply -f K8S/deployment.yaml
+                        kubectl apply -f K8S/service.yaml
+
+                        kubectl get pods
+                        kubectl get svc
+                    '''
+
+                }
+            }
         }
     }
 }

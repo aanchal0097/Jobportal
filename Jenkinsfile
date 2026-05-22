@@ -29,27 +29,19 @@ pipeline {
             }
         }
 
-        stage('Deploy to Kubernetes') {
-            steps {
-
-                withCredentials([file(
-                    credentialsId: 'kubeconfig',
-                    variable: 'KUBECONFIG'
-                )]) {
-
-                    sh '''
-                        export KUBECONFIG=$KUBECONFIG
-
-                        kubectl apply -f K8S/configmap.yaml
-                        kubectl apply -f K8S/deployment.yaml
-                        kubectl apply -f K8S/service.yaml
-
-                        kubectl get pods
-                        kubectl get svc
-                    '''
-
-                }
-            }
+        sstage('Deploy to Kubernetes') {
+    steps {
+        withCredentials([string(credentialsId: 'kubeconfig', variable: 'KUBECONFIG_CONTENT')]) {
+            sh '''
+                
+                echo "$KUBECONFIG_CONTENT" > kubeconfig.yaml
+                export KUBECONFIG=kubeconfig.yaml
+            
+                kubectl config use-context docker-desktop
+                kubectl apply -f K8S/configmap.yaml
+                kubectl apply -f K8S/deployment.yaml
+                kubectl apply -f K8S/service.yaml
+            '''
         }
     }
 }

@@ -1,7 +1,25 @@
 pipeline {
     agent any
 
+    tools {
+        nodejs 'nodejs'
+    }
+
     stages {
+
+        stage('Checkout') {
+            steps {
+                echo 'Cloning repository...'
+                checkout scm
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                echo 'Installing Node dependencies...'
+                sh 'npm install'
+            }
+        }
 
         stage('Build Docker Image') {
             steps {
@@ -18,7 +36,6 @@ pipeline {
                 )]) {
 
                     sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
-
                 }
             }
         }
@@ -30,18 +47,44 @@ pipeline {
         }
 
         stage('Deploy to Kubernetes') {
-    steps {
-        withCredentials([string(credentialsId: 'kubeconfig', variable: 'KUBECONFIG_CONTENT')]) {
+            steps {
+
+                withCredentials([file(
+                    credentialsId: 'kubeconfig',
+                    variable: 'KUBECONFIG'
+                )]) {
+
+                    sh '''
+                        export KUBECONFIG=$KUBECONFIG
+
+                        kubectl apply -f K8S/configmap.yaml
+                        kubectl apply -f K8S/deployment.yaml
+                        kubectl apply -f K8S/service.yaml
+
+                        kubectl get pods
+                        kubectl get svc
+                    '''
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Cleaning up local Docker images...'
+
             sh '''
-                
-                echo "$KUBECONFIG_CONTENT" > kubeconfig.yaml
-                export KUBECONFIG=kubeconfig.yaml
-            
-                kubectl config use-context docker-desktop
-                kubectl apply -f K8S/configmap.yaml
-                kubectl apply -f K8S/deployment.yaml
-                kubectl apply -f K8S/service.yaml
+                docker rmi sharmaanchal01/jobportal:latest || true
+                docker logout || true
             '''
+        }
+
+        success {
+            echo "Build #${BUILD_NUMBER} completed successfully!"
+        }
+
+        failure {
+            echo " Build #${BUILD_NUMBER} failed. Check logs above."
         }
     }
 }

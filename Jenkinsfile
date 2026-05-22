@@ -29,11 +29,14 @@ pipeline {
 
         stage('Docker Login') {
             steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub',
-                    usernameVariable: 'DOCKER_USER',
-                    passwordVariable: 'DOCKER_PASS'
-                )]) {
+
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub',
+                        usernameVariable: 'DOCKER_USER',
+                        passwordVariable: 'DOCKER_PASS'
+                    )
+                ]) {
 
                     sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
                 }
@@ -49,10 +52,12 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
 
-                withCredentials([file(
-                    credentialsId: 'kubeconfig',
-                    variable: 'KUBECONFIG'
-                )]) {
+                withCredentials([
+                    file(
+                        credentialsId: 'kubeconfig',
+                        variable: 'KUBECONFIG'
+                    )
+                ]) {
 
                     sh '''
                         export KUBECONFIG=$KUBECONFIG
@@ -70,7 +75,9 @@ pipeline {
     }
 
     post {
+
         always {
+
             echo 'Cleaning up local Docker images...'
 
             sh '''
@@ -80,11 +87,11 @@ pipeline {
         }
 
         success {
-            echo "Build #${BUILD_NUMBER} completed successfully!"
+            echo "Build Success"
         }
 
         failure {
-            echo " Build #${BUILD_NUMBER} failed. Check logs above."
+            echo "Build Failed"
         }
     }
 }

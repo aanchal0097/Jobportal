@@ -28,14 +28,7 @@ pipeline {
             steps {
                 sh 'docker push sharmaanchal01/jobportal:latest'
             }
-        }
-
-        stage('Deploy to Kubernetes') {
-            steps {
-                sh 'kubectl apply -f configmap.yaml'
-                sh 'kubectl apply -f deployment.yaml'
-                sh 'kubectl apply -f service.yaml'
-            }
+        
         }
     }
 }
